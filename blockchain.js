@@ -24,6 +24,7 @@ class Blockchain{
 		self.mineProof(block);
 		this.chain.push(block);
 	}
+
 	createTransaction(sender, receiver, value){
 		//ToDo: Create a new Transaction
 		//Create a transaction with sender and receiver address
@@ -37,6 +38,7 @@ class Blockchain{
 		this.lastBlock.transaction.push(transaction);
 		return this.lastBlock.id;
 	}
+
 	static hash(block){
 		//ToDo: Hash a Block
 		//Transfer a block into base64
@@ -46,10 +48,31 @@ class Blockchain{
 		newHash.update(blockB64);
 		return newHash.digest('hex');
 	}
-	static lastBlock(){
+
+	lastBlock(){
 		//ToDo: Get the last Block on the chain
 		return this.chain[this.chain.length - 1];
 	}
+
+	resolveChain(chain){
+		//if input chain is longer than current chain
+		//replace current chain with input chain and return true
+		//else return false
+		if(!chain.length || chain.length <= this.chain.length){
+			return false;
+		}
+		for(let i = 1; i < chain.length; i++){
+			if(this.constructor.hash(chain[i - 1]) != chain[i].previousBlockHash || !this.isProofValid(chain[i-1])){
+				return false;
+			}
+		}
+		if(this.isProofValid(chain[chain.length - 1])){
+			this.chain = chain;
+			return true;
+		}
+		return false;
+	}
+
 	isProofValid(tentativeBlock){
 		//ToDo: Check if our Proof is valid
 		//Hash all blockchain
@@ -57,9 +80,11 @@ class Blockchain{
 		var result = this.constructor.hash(tentativeBlock);
 		return result.substr(result.length - this.difficulty) == '0'.repeat(this.difficulty);
 	}
+
 	mineProof(tentativeBlock){
 		while(!this.isProofValid(tentativeBlock)){
 			tentativeBlock.proof += 1;//if proof is invalid, we keep mining
 		}
 	}
 }
+module.exports = Blockchain;
